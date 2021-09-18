@@ -1,3 +1,5 @@
+#include <PubSubClient.h>
+#include "DHT.h"
 #include <dummy.h>
 #include <ESP8266WiFi.h>
 #include <ThingsBoard.h>
@@ -5,17 +7,21 @@
 #define WIFI_AP "Akirachix"
 #define WIFI_PASSWORD "Akirachix2021"
 
-#define TOKEN "ESP8266_DEMO_TOKEN"
-const int trigPin = 6;
-const int echoPin = 5;
+#define TOKEN "1hNmhG8rkvefbgWEhXLV"
 
 //define sound velocity in cm/uS
 #define SOUND_VELOCITY 0.034
 #define CM_TO_INCH 0.393701
 
-char thingsboardServer[] = "XeRSRXLKmLzBct5aFdqp";
+const int trigPin = 6;
+const int echoPin = 5;
+
+char thingsboardServer[] = "demo.thingsboard.io";
 
 WiFiClient wifiClient;
+
+//Initialize the Sensor.
+DHT dht(trigPin, echoPin);
 
 ThingsBoard tb(wifiClient);
 
@@ -23,22 +29,30 @@ long duration;
 float distanceCm;
 float distanceInch;
 
+void InitWiFi();
+int lastSend = 0;
+void reconnect();
+int distance;
+int readDistanceCm;
+int readDistanceInch;
+int status;
+
 void setup() {
   Serial.begin(115200); // Starts the serial communication
   pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
-  InitWifi();
-  lastSend = 0;
+  dht.begin();
+  delay(10);
 }
 
 void loop() {  
     if ( !tb.connected() ) {
-      reconnect();
+      reconnect;
   }
 
-  if ( distance() - lastSend > 100 ) { // Update and send only after 1 seconds
+  if ( distance - lastSend > 100 ) { // Update and send only after 1 seconds
     getAndSendDistance();
-    lastSend = distance();
+    lastSend = distance;
   }
 
   tb.loop();
@@ -46,6 +60,7 @@ void loop() {
   // Clears the trigPin
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
+  
   // Sets the trigPin on HIGH state for 10 micro seconds
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
@@ -72,17 +87,18 @@ void loop() {
 void getAndSendDistance(){
   Serial.println("Collecting distance data: ");
 
-  float distanceCm = readDistanceCm();
+  float distanceCm = readDistanceCm;
 
-  float distanceInch = readDistanceInch();
+  float distanceInch = readDistanceInch;
 
   // Check if any reads failed and exit early (to try again).
   if (isnan(distanceCm) || isnan(distanceInch)) {
     Serial.println("Failed to read from Ultrasonic sensor!");
     return;
   }
+}
 
-  void InitWiFi()
+void InitWiFi()
 {
   Serial.println("Connecting to AP ...");
   // attempt to connect to WiFi network
@@ -118,4 +134,3 @@ void reconnect() {
     }
   }
 }
-    }
